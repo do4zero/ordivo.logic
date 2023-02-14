@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1.0"
+    />
+    <title>Document</title>
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css"
+      rel="stylesheet"
+      integrity="sha384-GLhlTQ8iRABdZLl6O3oVMWSktQOp6b7In1Zl3/Jr59b6EGGoI1aFkw7cmDA6j6gD"
+      crossorigin="anonymous"
+    />
+  </head>
+  <body>
+    <div class="container">
+        <div class="form-group mb-3 mt-5">
+          <label>Input HTML Tag Here</label>
+          <textarea
+            class="form-control"
+            type="text"
+            value=""
+            id="htmlString"
+          ></textarea>
+        </div>
+        
+        <pre id="target">
+
+        </pre>
+
+        <div class="form-group mb-3">
+          <button class="btn btn-primary" onclick="parseHtmlStringToJson()">Parse To Tree</button>
+        </div>
+      </div>
+    </div>
+  </body>
+</html>
+<script>
+  
+  var text1 =
+    '<div sc-rootbear sc-damn title="Oh My">Hello <i sc-org><span sc-spread>Dung</span>Hello World Dong</i></div><div sc-hello>Tes <i sc-tes></i></div>';
+  var text2 = `<div sc-prop sc-alias="" sc-type="Organization"><div sc-name="Alice">Hello <i
+  sc-name="Wonderland">World</i></div></div>`;
+
+  let parser = new DOMParser();
+  const doc = parser.parseFromString(text2, 'text/html');
+  
+  let scKey = [];
+  function question2(element, inc = 0) {
+    for (let i = 0; i < element.length; i++) {
+      const node = element[i];
+      if (node.nodeType === 1) {
+        if (node.attributes) {
+          if (node.attributes.length) {
+            const keyvalue = {};
+            for (let j = 0; j < node.attributes.length; j++) {
+              const attr = node.attributes[j];
+              if (attr.nodeName.includes('sc-'))
+                keyvalue[attr.nodeName.slice(3)] = attr.nodeValue;
+            }
+
+            if (node.children.length > 0) {
+              scKey = [
+                ...scKey,
+                {
+                  ...keyvalue,
+                  data: question2(node.childNodes, inc),
+                },
+              ];
+            } else {
+              scKey = [{ ...keyvalue }];
+            }
+          }
+        }
+      }
+    }
+    return scKey;
+  }
+
+  function parseHtmlStringToJson()
+  {
+    scKey = [];
+
+    const input = document.getElementById('htmlString');
+    let parser = new DOMParser();
+    const doc = parser.parseFromString(input.value, 'text/html');
+    const convert = question2(doc.body.childNodes);
+    const target = document.getElementById('target');
+    target.innerHTML = JSON.stringify(convert);
+  }
+</script>
